@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pixel Jump - Mobile Edition</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #F43F5E;
+            --accent: #FACC15;
+            --background: #0f0816;
+            --card-bg: rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: white;
+            font-family: 'VT323', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 4/3;
+            background: #000;
+            border: 4px solid #334155;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 200;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .hidden { display: none !important; }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.5rem, 8vw, 3rem);
+            color: var(--primary);
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 0 rgba(255,255,255,0.1);
+            animation: pulse 2s infinite;
+        }
+
+        h2 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.2rem, 6vw, 2.5rem);
+            margin-bottom: 0.5rem;
+        }
+
+        .btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+            padding: 0.8rem 1.5rem;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: transform 0.1s;
+            margin: 0.5rem;
+        }
+
+        .btn:active { transform: scale(0.95); }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 3px 3px 0 #9f1239;
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 3px 3px 0 #a16207;
+        }
+
+        .score-display {
+            position: absolute;
+            top: 0.5rem;
+            left: 0.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            z-index: 10;
+            background: rgba(0,0,0,0.5);
+            padding: 0.3rem;
+        }
+
+        input {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.2);
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            padding: 0.8rem;
+            text-align: center;
+            width: 100%;
+            max-width: 250px;
+            margin-bottom: 1rem;
+            outline: none;
+        }
+
+        .leaderboard {
+            width: 100%;
+            max-width: 320px;
+            margin-top: 1rem;
+            background: rgba(0,0,0,0.6);
+            border: 3px solid var(--accent);
+            padding: 1rem;
+        }
+
+        .leaderboard h3 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.6rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 1.2rem;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* Mobile Controls */
+        #mobile-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            padding: 1rem;
+            z-index: 150;
+        }
+
+        .d-pad {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .control-btn {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            touch-action: none;
+        }
+
+        .control-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+            transform: scale(1.1);
+        }
+
+        .jump-btn {
+            background: rgba(244, 63, 94, 0.4);
+            border-color: rgba(244, 63, 94, 0.6);
+            width: 85px;
+            height: 85px;
+        }
+
+        .scanlines {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.15) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 3px 100%;
+            z-index: 100;
+        }
+
+        @media (min-width: 801px) {
+            #mobile-controls { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div class="scanlines"></div>
+        <div id="score-ui" class="score-display hidden">SCORE: 000000</div>
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="overlay">
+            <h1>PIXEL JUMP</h1>
+            <button id="start-btn" class="btn btn-primary">Start Game</button>
+            <div class="leaderboard">
+                <h3>High Scores</h3>
+                <div id="start-scores"></div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div id="gameover-screen" class="overlay hidden">
+            <h2 style="color: #EF4444;">GAME OVER</h2>
+            <div id="final-score" style="font-size: 1.5rem; color: var(--accent); margin-bottom: 1rem;">SCORE: 000000</div>
+            <div id="submit-section">
+                <input type="text" id="username" placeholder="NAME" maxlength="10">
+                <button id="submit-btn" class="btn btn-accent" style="width: 100%; max-width: 250px;">Submit Score</button>
+            </div>
+            <div id="saved-msg" class="hidden" style="color: #22C55E; font-family: 'Press Start 2P'; font-size: 0.6rem; margin-bottom: 1rem;">SCORE SAVED!</div>
+            <button id="retry-btn" class="btn btn-primary">Try Again</button>
+        </div>
+
+        <!-- Win Screen -->
+        <div id="win-screen" class="overlay hidden">
+            <h2 style="color: var(--accent);">VICTORY!</h2>
+            <div style="font-size: 1.2rem; margin-bottom: 0.5rem;">YOU WIN!</div>
+            <div id="win-final-score" style="font-size: 1.5rem; color: var(--accent); margin-bottom: 1rem;">SCORE: 000000</div>
+            <div id="win-submit-section">
+                <input type="text" id="win-username" placeholder="NAME" maxlength="10">
+                <button id="win-submit-btn" class="btn btn-accent" style="width: 100%; max-width: 250px;">Submit Score</button>
+            </div>
+            <div id="win-saved-msg" class="hidden" style="color: #22C55E; font-family: 'Press Start 2P'; font-size: 0.6rem; margin-bottom: 1rem;">SCORE SAVED!</div>
+            <button id="win-retry-btn" class="btn btn-primary">Play Again</button>
+        </div>
+
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <div id="mobile-controls">
+        <div class="d-pad">
+            <div id="left-btn" class="control-btn">←</div>
+            <div id="right-btn" class="control-btn">→</div>
+        </div>
+        <div id="jump-btn" class="control-btn jump-btn">JUMP</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreUI = document.getElementById('score-ui');
+        
+        const GRAVITY = 0.45;
+        const FRICTION = 0.8;
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 600;
+
+        let gameState = 'start';
+        let score = 0;
+        let lastTime = 0;
+        let animationFrame;
+
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.key] = true);
+        window.addEventListener('keyup', e => keys[e.key] = false);
+
+        // Mobile touch states
+        const touch = { left: false, right: false, jump: false };
+        
+        const setupTouch = (id, key) => {
+            const el = document.getElementById(id);
+            const start = (e) => { e.preventDefault(); touch[key] = true; };
+            const end = (e) => { e.preventDefault(); touch[key] = false; };
+            el.addEventListener('touchstart', start);
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', start);
+            el.addEventListener('mouseup', end);
+            el.addEventListener('mouseleave', end);
+        };
+
+        setupTouch('left-btn', 'left');
+        setupTouch('right-btn', 'right');
+        setupTouch('jump-btn', 'jump');
+
+        let player = {
+            x: 50, y: 300, width: 32, height: 32,
+            vx: 0, vy: 0, speed: 5, jumpStrength: 13, grounded: false,
+            color: '#F43F5E'
+        };
+
+        const platforms = [
+            { x: 0, y: 550, width: 800, height: 50, color: '#334155' },
+            { x: 200, y: 450, width: 150, height: 20, color: '#475569' },
+            { x: 500, y: 350, width: 150, height: 20, color: '#475569' },
+            { x: 50, y: 250, width: 150, height: 20, color: '#475569' },
+            { x: 350, y: 150, width: 150, height: 20, color: '#475569' },
+            { x: 600, y: 200, width: 100, height: 20, color: '#475569' },
+        ];
+
+        let coins = [
+            { id: 1, x: 250, y: 410, radius: 8, collected: false, color: '#FACC15' },
+            { id: 2, x: 550, y: 310, radius: 8, collected: false, color: '#FACC15' },
+            { id: 3, x: 100, y: 210, radius: 8, collected: false, color: '#FACC15' },
+            { id: 4, x: 400, y: 110, radius: 8, collected: false, color: '#FACC15' },
+            { id: 5, x: 650, y: 160, radius: 8, collected: false, color: '#FACC15' },
+            { id: 6, x: 750, y: 510, radius: 8, collected: false, color: '#FACC15' },
+            { id: 7, x: 300, y: 310, radius: 8, collected: false, color: '#FACC15' },
+            { id: 8, x: 100, y: 410, radius: 8, collected: false, color: '#FACC15' },
+            { id: 9, x: 450, y: 210, radius: 8, collected: false, color: '#FACC15' },
+            { id: 10, x: 200, y: 110, radius: 8, collected: false, color: '#FACC15' },
+        ];
+
+        let enemies = [
+            { id: 1, x: 220, y: 420, width: 24, height: 24, vx: 2, startX: 220, patrolDist: 100, color: '#EF4444', isDead: false },
+            { id: 2, x: 520, y: 320, width: 24, height: 24, vx: 2, startX: 520, patrolDist: 100, color: '#EF4444', isDead: false },
+            { id: 3, x: 50, y: 220, width: 24, height: 24, vx: 1.5, startX: 50, patrolDist: 80, color: '#EF4444', isDead: false },
+            { id: 4, x: 350, y: 120, width: 24, height: 24, vx: 2.5, startX: 350, patrolDist: 120, color: '#EF4444', isDead: false },
+            { id: 5, x: 600, y: 170, width: 24, height: 24, vx: 1.8, startX: 600, patrolDist: 60, color: '#EF4444', isDead: false },
+        ];
+
+        function update() {
+            if (gameState !== 'playing') return;
+
+            // Movement
+            if (keys['ArrowRight'] || keys['d'] || keys['D'] || touch.right) {
+                player.vx += 0.8;
+                if (player.vx > player.speed) player.vx = player.speed;
+            } else if (keys['ArrowLeft'] || keys['a'] || keys['A'] || touch.left) {
+                player.vx -= 0.8;
+                if (player.vx < -player.speed) player.vx = -player.speed;
+            }
+            player.vx *= FRICTION;
+
+            if ((keys['ArrowUp'] || keys['w'] || keys['W'] || keys[' '] || touch.jump) && player.grounded) {
+                player.vy = -player.jumpStrength;
+                player.grounded = false;
+            }
+
+            player.vy += GRAVITY;
+            player.x += player.vx;
+            player.y += player.vy;
+            player.grounded = false;
+
+            // Collisions
+            platforms.forEach(p => {
+                if (player.x < p.x + p.width && player.x + player.width > p.x &&
+                    player.y + player.height > p.y && player.y + player.height < p.y + p.height + 20 &&
+                    player.vy >= 0) {
+                    player.grounded = true;
+                    player.vy = 0;
+                    player.y = p.y - player.height;
+                }
+            });
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > CANVAS_WIDTH) player.x = CANVAS_WIDTH - player.width;
+            if (player.y > CANVAS_HEIGHT) gameOver();
+
+            coins.forEach(c => {
+                if (c.collected) return;
+                const dx = (player.x + player.width/2) - c.x;
+                const dy = (player.y + player.height/2) - c.y;
+                if (Math.sqrt(dx*dx + dy*dy) < c.radius + player.width/2) {
+                    c.collected = true;
+                    score += 100;
+                    scoreUI.innerText = `SCORE: ${score.toString().padStart(6, '0')}`;
+                    if (coins.every(c => c.collected)) win();
+                }
+            });
+
+            enemies.forEach(e => {
+                if (e.isDead) return;
+                e.x += e.vx;
+                if (Math.abs(e.x - e.startX) > e.patrolDist) e.vx *= -1;
+
+                if (player.x < e.x + e.width && player.x + player.width > e.x &&
+                    player.y < e.y + e.height && player.y + player.height > e.y) {
+                    if (player.vy > 0 && (player.y + player.height) < (e.y + e.height / 2 + player.vy)) {
+                        e.isDead = true;
+                        player.vy = -player.jumpStrength * 0.6;
+                        score += 200;
+                        scoreUI.innerText = `SCORE: ${score.toString().padStart(6, '0')}`;
+                    } else {
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+            
+            // Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            for(let x=0; x<CANVAS_WIDTH; x+=40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,CANVAS_HEIGHT); ctx.stroke(); }
+            for(let y=0; y<CANVAS_HEIGHT; y+=40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(CANVAS_WIDTH,y); ctx.stroke(); }
+
+            platforms.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                ctx.fillRect(p.x, p.y, p.width, 2);
+            });
+
+            coins.forEach(c => {
+                if (c.collected) return;
+                ctx.beginPath(); ctx.arc(c.x, c.y, c.radius, 0, Math.PI*2);
+                ctx.fillStyle = c.color; ctx.fill();
+                ctx.strokeStyle = '#FEF08A'; ctx.lineWidth = 2; ctx.stroke();
+            });
+
+            enemies.forEach(e => {
+                if (e.isDead) return;
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x, e.y, e.width, e.height);
+                ctx.fillStyle = 'black';
+                ctx.fillRect(e.x + (e.vx > 0 ? 14 : 4), e.y + 6, 4, 4);
+                ctx.fillRect(e.x + (e.vx > 0 ? 6 : 14), e.y + 6, 4, 4);
+            });
+
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x + (player.vx >= 0 ? 20 : 6), player.y + 6, 6, 6);
+            ctx.fillRect(player.x + (player.vx >= 0 ? 8 : 18), player.y + 6, 6, 6);
+        }
+
+        function loop(time) {
+            const dt = time - lastTime;
+            if (dt >= 16) {
+                update();
+                draw();
+                lastTime = time;
+            }
+            animationFrame = requestAnimationFrame(loop);
+        }
+
+        function startGame() {
+            score = 0;
+            scoreUI.innerText = "SCORE: 000000";
+            player.x = 50; player.y = 300; player.vx = 0; player.vy = 0;
+            coins.forEach(c => c.collected = false);
+            enemies.forEach(e => e.isDead = false);
+            gameState = 'playing';
+            
+            document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
+            scoreUI.classList.remove('hidden');
+        }
+
+        function gameOver() {
+            gameState = 'gameover';
+            scoreUI.classList.add('hidden');
+            document.getElementById('gameover-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = `SCORE: ${score.toString().padStart(6, '0')}`;
+            document.getElementById('submit-section').classList.remove('hidden');
+            document.getElementById('saved-msg').classList.add('hidden');
+        }
+
+        function win() {
+            gameState = 'win';
+            scoreUI.classList.add('hidden');
+            document.getElementById('win-screen').classList.remove('hidden');
+            document.getElementById('win-final-score').innerText = `SCORE: ${score.toString().padStart(6, '0')}`;
+            document.getElementById('win-submit-section').classList.remove('hidden');
+            document.getElementById('win-saved-msg').classList.add('hidden');
+        }
+
+        function saveLocalScore(name) {
+            const scores = JSON.parse(localStorage.getItem('pixelJumpScores') || '[]');
+            scores.push({ username: name, score: score });
+            scores.sort((a,b) => b.score - a.score);
+            localStorage.setItem('pixelJumpScores', JSON.stringify(scores.slice(0, 5)));
+            updateLeaderboard();
+        }
+
+        function updateLeaderboard() {
+            const scores = JSON.parse(localStorage.getItem('pixelJumpScores') || '[]');
+            const container = document.getElementById('start-scores');
+            container.innerHTML = scores.map((s, i) => `
+                <div class="score-row">
+                    <span>${i+1}. ${s.username}</span>
+                    <span style="color: var(--accent);">${s.score.toString().padStart(5, '0')}</span>
+                </div>
+            `).join('') || '<div style="font-size: 0.8rem; opacity: 0.5;">NO RECORDS YET</div>';
+        }
+
+        document.getElementById('start-btn').onclick = startGame;
+        document.getElementById('retry-btn').onclick = startGame;
+        document.getElementById('win-retry-btn').onclick = startGame;
+        
+        document.getElementById('submit-btn').onclick = () => {
+            const name = document.getElementById('username').value.toUpperCase();
+            if (name) {
+                saveLocalScore(name);
+                document.getElementById('submit-section').classList.add('hidden');
+                document.getElementById('saved-msg').classList.remove('hidden');
+            }
+        };
+
+        document.getElementById('win-submit-btn').onclick = () => {
+            const name = document.getElementById('win-username').value.toUpperCase();
+            if (name) {
+                saveLocalScore(name);
+                document.getElementById('win-submit-section').classList.add('hidden');
+                document.getElementById('win-saved-msg').classList.remove('hidden');
+            }
+        };
+
+        updateLeaderboard();
+        requestAnimationFrame(loop);
+    </script>
+</body>
+</html>
