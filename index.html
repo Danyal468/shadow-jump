@@ -482,7 +482,7 @@
 
             document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
             scoreUI.classList.remove('hidden');
-            showAd();
+            
         }
 
         function gameOver() {
@@ -492,6 +492,10 @@
             document.getElementById('final-score').innerText = `SCORE: ${score.toString().padStart(6, '0')}`;
             document.getElementById('submit-section').classList.remove('hidden');
             document.getElementById('saved-msg').classList.add('hidden');
+            if (typeof gdsdk !== "undefined") {
+    gdsdk.showAd();
+}
+
         }
 
         function win() {
