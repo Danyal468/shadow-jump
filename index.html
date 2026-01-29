@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://api.gamedistribution.com/sdk.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pixel Jump - Mobile Edition</title>
@@ -476,7 +478,8 @@
             coins.forEach(c => c.collected = false);
             enemies.forEach(e => e.isDead = false);
             gameState = 'playing';
-            
+            showAd();
+
             document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
             scoreUI.classList.remove('hidden');
         }
@@ -543,5 +546,13 @@
         updateLeaderboard();
         requestAnimationFrame(loop);
     </script>
+    <script>
+function showAd() {
+  if (window.gdsdk) {
+    window.gdsdk.showAd();
+  }
+}
+</script>
+
 </body>
 </html>
