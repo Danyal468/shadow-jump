@@ -478,10 +478,11 @@
             coins.forEach(c => c.collected = false);
             enemies.forEach(e => e.isDead = false);
             gameState = 'playing';
-            showAd();
+            
 
             document.querySelectorAll('.overlay').forEach(el => el.classList.add('hidden'));
             scoreUI.classList.remove('hidden');
+            showAd();
         }
 
         function gameOver() {
